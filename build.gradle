@@ -1,0 +1,17 @@
+/* GRADLE  */
+apply plugin: "groovy"
+
+repositories {
+    jcenter()
+}
+
+
+dependencies {
+	//compile fileTree(dir: "libs", include: "*.jar")
+	compile(
+		[group: "org.codehaus.groovy",   name: "groovy-all"   	        , version: "2.4.12"],
+		//[group: "org.apache.tomcat",     name: "tomcat-catalina"        , version: "7.0.73"],
+
+	)
+}
+
