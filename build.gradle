@@ -54,9 +54,6 @@ publishing {
     publications {
         MyPublication(MavenPublication) {
             from components.java
-//            groupId "$group"
-//            artifactId "${rootProject.name}"
-//            version "$version"
         }
     }
 }
