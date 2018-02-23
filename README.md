@@ -67,9 +67,22 @@ println m.response.body.getText("UTF-8")
 
 helpers to get ssl context
 
-| method | description |
-|----|----|
-| `getKeystoreSSLContext(String sslProtocol, String keystorePath, String keystorePass, String keystoreType="JKS", String keyPass = null)` | Creates keystore ssl context based on private key. |
-| `getNaiveSSLContext(String sslProtocol="TLS")` | returns naive (trust all) ssl context. don't use it on prod. |
+* `getKeystoreSSLContext(String sslProtocol, String keystorePath, String keystorePass, String keystoreType="JKS", String keyPass = null)`
+  
+  Creates keystore ssl context based on private key
+  
+  Parameters:
+  
+  * `sslProtocol` valid values: "SSL", "SSLv2", "SSLv3", "TLS", "TLSv1", "TLSv1.1", "TLSv1.2". see more information: [SSLContext.html.getInstance()](https://docs.oracle.com/javase/8/docs/api/javax/net/ssl/SSLContext.html#getInstance-java.lang.String-)
+  * `keystorePath` path to keystore ( usually keystore.jks file )
+  * `keystorePass` password to keystore
+  * `keystoreType` by default `"JKS"`. Used for `java.security.KeyStore.getInstance(java.lang.String)`
+  * `keyPass` password for the private key - by default and if null then equals to `keystorePass`
+* `getNaiveSSLContext(String sslProtocol="TLS")`
+  
+  returns naive (trust all) ssl context. don't use it on prod.
+
+
+
 
 check this page for more [examples](EXAMPLES.md)
