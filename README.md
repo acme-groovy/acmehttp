@@ -5,9 +5,6 @@ simplified plain http client optimized for groovy language
 
 TODO
 
-### javadoc
-
-http://htmlpreview.github.io/?https://github.com/acme-groovy/acmehttp/blob/master/javadoc/AcmeHTTP.html
 
 ### AcmeHTTP class
 
