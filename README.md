@@ -1,14 +1,17 @@
 # AcmeHTTP
 simplified plain http client optimized for groovy language
 
-### grab it
+## grab it
 
 TODO
 
+## examples
 
-### AcmeHTTP class
+[EXAMPLES.md](EXAMPLES.md)
 
-#### methods: get, post, put, delete, head, send
+## AcmeHTTP class
+
+### methods: get, post, put, delete, head, send
 
 All methods has the same parameter map:
 
@@ -37,7 +40,7 @@ As result every method returns a modified input parameter map with additional ke
 | `response.headers` | http response headers Map returned by `URLConnection.getHeaderFields()` |
 | `response.body` | response body returned by a `*_RECEIVER`. For example `TEXT_RECEIVER` returns body as text, and `FILE_RECEIVER(java.io.File)` returns body as `java.io.File` object |
 
-#### receivers
+### receivers
 
 | name | description |
 |------|-------------|
@@ -60,7 +63,7 @@ assert m.response.code==200
 println m.response.body.getText("UTF-8")
 ```
 
-#### ssl context
+### ssl context
 
 helpers to get ssl context
 
@@ -69,5 +72,4 @@ helpers to get ssl context
 | `getKeystoreSSLContext(String sslProtocol, String keystorePath, String keystorePass, String keystoreType="JKS", String keyPass = null)` | Creates keystore ssl context based on private key. |
 | `getNaiveSSLContext(String sslProtocol="TLS")` | returns naive (trust all) ssl context. don't use it on prod. |
 
-
-#### 
+check this page for more [examples](EXAMPLES.md)
