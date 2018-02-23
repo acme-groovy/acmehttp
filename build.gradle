@@ -14,9 +14,16 @@ repositories {
 }
 
 
+//============================================
 group = "acme-groovy"
 version = new Date().format("yyyyMMdd")
 
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+//============================================
+
+
+//load / create default props
 new File("local.properties").with{f->
 	new Properties().with{p->
 		if(f.exists()){
@@ -41,7 +48,7 @@ dependencies {
 	)
 }
 
-task all(dependsOn: [clean, install, bintrayUpload])
+task all(dependsOn: [clean, build, bintrayUpload])
 
 publishing {
     publications {
@@ -52,11 +59,6 @@ publishing {
 //            version "$version"
         }
     }
-}
-
-def require={v,m->
-	assert v : m
-	return v
 }
 
 bintray {
@@ -78,5 +80,16 @@ bintray {
 		}
 		*/
     }
+}
+
+jar {
+	manifest {
+		attributes(
+			//"Created-By"            : vendor,
+			"Implementation-Title"  : "${rootProject.group}:${rootProject.name}",
+			"Implementation-Version": "${rootProject.version}",
+			"Implementation-URL"    : "https://github.com/acme-groovy/acmehttp",
+		)
+	}
 }
 
