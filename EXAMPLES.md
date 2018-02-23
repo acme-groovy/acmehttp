@@ -14,17 +14,19 @@ assert t.response.body.time
 assert t.response.body.date
 ```
 
-### simple https get
+### simple https get and query parameters
 ```groovy
 import groovyx.acme.net.AcmeHTTP
 
+//this will build url: https://httpbin.org/get?a=1&a=2&b=3
 def t = AcmeHTTP.get(
-    url:"https://api.github.com/"
+    url:"https://httpbin.org/get",
+    query: [a: ['1','2'], b:'3']
 )
 assert t.response.code==200
 assert t.response.contentType =~ "/json"
-assert t.response.body instanceof Map // expecting response like:  { "current_user_url": "https://api.github.com/user", ... }
-assert t.response.body.current_user_url == "https://api.github.com/user"
+assert t.response.body.args.a == ["1", "2"]
+assert t.response.body.args.b == "3"
 ```
 
 ### xml post
@@ -99,4 +101,17 @@ assert t.response.code==200
 assert t.response.contentType =~ "/json"
 assert t.response.body instanceof Map // expecting response like:  { "headers": { "Header1":"value1", ... } }
 assert t.response.body.headers.findAll{it.key =~ /^Header\d+/ }.sort() == ["Header1":"value1", "Header2":"value2"]
+```
+
+### post a stream and receive into file
+```groovy
+import groovyx.acme.net.AcmeHTTP
+
+def tmpFile = new File("./build/Copy_of_README.md")
+def t = AcmeHTTP.post(
+    url: "https://httpbin.org/post",
+    body: new File("./README.md").newInputStream(),
+    receiver: AcmeHTTP.FILE_RECEIVER( tmpFile )
+)
+assert t.response.code==200
 ```
