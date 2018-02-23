@@ -55,6 +55,7 @@ assert t.response.code==200
 assert t.response.contentType =~ "/json"
 assert t.response.body.args.p1 =="11&22"
 assert t.response.body.args.p2 =="33 44"
+//in the response `data` tag there should be originally posted xml
 assert t.response.body.data == groovy.xml.XmlUtil.serialize(xml)
 ```
 
@@ -80,21 +81,22 @@ assert t.response.contentType =~ "/json"
 assert t.response.body instanceof Map
 //the https://httpbin.org/post service returns json object with json key that contains posted body
 //so let's take it and validate
-def data = t.response.body.json  
+def data = t.response.body.json
 assert data.arr_int==[1,2,3,4,5,9]
 assert data.str=="hello"
 ```
 
-### trust all https (naive ssl context)
+### headers and trust all https (naive ssl context)
 ```groovy
 import groovyx.acme.net.AcmeHTTP
 
 def t = AcmeHTTP.get(
-    url: "https://api.github.com/",
-    ssl: AcmeHTTP.getNaiveSSLContext()
+    url: "https://httpbin.org/headers",
+    ssl: AcmeHTTP.getNaiveSSLContext(),
+    "headers": ["Header1":"value1", "Header2":"value2"]
 )
 assert t.response.code==200
 assert t.response.contentType =~ "/json"
-assert t.response.body instanceof Map // expecting response like:  { "current_user_url": "https://api.github.com/user", ... }
-assert t.response.body.current_user_url == "https://api.github.com/user"
+assert t.response.body instanceof Map // expecting response like:  { "headers": { "Header1":"value1", ... } }
+assert t.response.body.headers.findAll{it.key =~ /^Header\d+/ }.sort() == ["Header1":"value1", "Header2":"value2"]
 ```

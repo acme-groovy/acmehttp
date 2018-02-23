@@ -28,7 +28,7 @@ class AcmeHTTPTest extends GroovyTestCase {
 		StringBuilder testCode = new StringBuilder(1024);
 		int state = 0; //0:default, 1:code
 		
-		new File("./src/test/resources/AcmeHTTP.md").eachLine("UTF-8"){line->
+		new File("./EXAMPLES.md").eachLine("UTF-8"){line->
 			if(state==0){
 				if(line.startsWith("###"))testName=line.substring(3);
 				else if(line=="```groovy")state=1;
