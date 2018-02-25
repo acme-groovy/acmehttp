@@ -47,6 +47,8 @@ dependencies {
 		[group: "junit",   name: "junit"   	        , version: "4.11"],
 	)
 }
+//remove all compile dependencies
+install.repositories.mavenInstaller.pom.whenConfigured{pom->  pom.dependencies.removeAll { it.scope in["compile","test"] } }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = "sources"
