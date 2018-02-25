@@ -154,8 +154,8 @@ public class AcmeHTTP{
         String contentType="";
         
         if(query){
-        	def e2s = {String k,Object v-> k + "=" + URLEncoder.encode(v as String ?: "", "UTF-8") }
-            url+="?"+query.collectMany{k,v-> v instanceof List ? v.collect{ e2s(k,it) } : [ e2s(k,v) ] }.join('&');
+        	def e2s = {String k,Object v-> k + "=" + URLEncoder.encode(v as String ?: "", encoding) }
+            url+=(url.indexOf('?')>0 ? "&" : "?")+query.collectMany{k,v-> v instanceof List ? v.collect{ e2s(k,it) } : [ e2s(k,v) ] }.join('&');
         }
         
         HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
@@ -206,7 +206,7 @@ public class AcmeHTTP{
                     }
                 } else if( contentType =~ "(?i)[^/]+/x-www-form-urlencoded" ) {
                     out.withWriter((String)ctx.encoding) {
-                        it.append( ((Map)body).collect{k,v-> ""+k+"="+URLEncoder.encode((String)v,'UTF-8') }.join('&') )
+                        it.append( ((Map)body).collect{k,v-> ""+k+"="+URLEncoder.encode((String)v,encoding) }.join('&') )
                     }
                 } else {
                     throw new IOException("Map body type supported only for */json of */x-www-form-urlencoded content-type");
