@@ -9,10 +9,10 @@ plugins {
 	id "groovy"
     id "com.jfrog.bintray" version "1.8.0"
 }
+
 repositories {
     jcenter()
 }
-
 
 //============================================
 group = "acme.groovy"
@@ -65,7 +65,7 @@ publishing {
         MyPublication(MavenPublication) {
             from components.java
             artifact sourcesJar
-            //artifact javadocJar
+            artifact groovydocJar
         }
     }
 }
@@ -77,7 +77,7 @@ bintray {
     pkg {
         repo     = "repo"
         name     = rootProject.name
-        userOrg  = rootProject.group
+        userOrg  = rootProject.group.tr('.','-')
         licenses = ["Apache-2.0"]
         vcsUrl   = "https://github.com/acme-groovy/acmehttp.git"
 		publicDownloadNumbers = true
