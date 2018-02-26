@@ -4,7 +4,7 @@ simplified plain http client optimized for groovy language
 ## grab it
 
 ```groovy
-@Grab(group='acme.groovy', module='acmehttp', version='20180225', transitive=false)
+@Grab(group='acme.groovy', module='acmehttp', version='20180226')
 import groovyx.acme.net.AcmeHTTP
 ```
 
