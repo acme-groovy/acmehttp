@@ -138,7 +138,7 @@ public class AcmeHTTP{
      */
     public static Map<String,Object> send(Map<String,Object> ctx)throws IOException{
         String             url      = ctx.url;
-        Map<String,String> headers  = (Map<String,String>)ctx.headers;
+        Map<String,Object> headers  = HeadersMap.cast((Map<String,Object>)ctx.headers);
         String             method   = ctx.method;
         Object             body     = ctx.body;
         String             encoding = ctx.encoding?:"UTF-8";
@@ -151,6 +151,7 @@ public class AcmeHTTP{
         //copy context and set default values
         ctx = [:] + ctx;
         ctx.encoding = encoding;
+        ctx.headers = headers;
         String contentType="";
         
         if(query){
@@ -174,13 +175,11 @@ public class AcmeHTTP{
         
         connection.setDoOutput(true);
         connection.setRequestMethod(method);
-        if ( headers!=null && !headers.isEmpty() ) {
+        if ( headers ) {
             //add headers
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-                if(entry.getValue()){
-                    connection.addRequestProperty(entry.getKey(), entry.getValue());
-                    if("content-type".equals(entry.getKey().toLowerCase()))contentType=entry.getValue();
-                }
+            headers.each{String k, String v-> 
+                connection.addRequestProperty(k, v);
+                if("content-type".equals(k.toLowerCase()))contentType=v;
             }
         }
         if( followRedirects!=null ){
@@ -228,7 +227,7 @@ public class AcmeHTTP{
         response.code    = connection.getResponseCode();
         response.message = connection.getResponseMessage();
         response.contentType = connection.getContentType();
-        response.headers = connection.getHeaderFields();
+        response.headers = HeadersMap.cast((Map<String,Object>)connection.getHeaderFields());
         
         InputStream instr = null;
         

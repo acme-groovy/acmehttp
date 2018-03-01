@@ -9,6 +9,7 @@ import groovyx.acme.net.AcmeHTTP
 def t = AcmeHTTP.get(url:"http://time.jsontest.com/")
 assert t.response.code==200
 assert t.response.contentType =~ "/json"
+assert t.response.headers.first('content-type') =~ "/json"
 assert t.response.body instanceof Map // expecting response like:  {"time": "01:07:59 PM", "date": "05-31-2017"}
 assert t.response.body.time
 assert t.response.body.date
@@ -21,7 +22,8 @@ import groovyx.acme.net.AcmeHTTP
 //this will build url: https://httpbin.org/get?a=1&a=2&b=3
 def t = AcmeHTTP.get(
     url:"https://httpbin.org/get",
-    query: [a: ['1','2'], b:'3']
+    query: [a: ['1','2'], b:'3'],
+    headers: [h1:[1,2],h2:3]
 )
 assert t.response.code==200
 assert t.response.contentType =~ "/json"
