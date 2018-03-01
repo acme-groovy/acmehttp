@@ -23,7 +23,7 @@ All methods has the same parameter map:
 | url | string where to send request |
 | query | `Map` parameters to append to url |
 | method | http method to be used in request. all methods except: `send` substitutes this key with corresponting one |
-| headers | key-value `Map` with headers that should be sent with request |
+| headers | key-value `Map` with headers that should be sent with request. `value` could be a `List` of strings for multiple headers with the same name. |
 | body | request body/data to send to url. could be: `InputStream`, `CharSequence`, `groovy.lang.Writable`, `Closure{outStream,ctx->...}`, or `Map` for `json` and `x-www-form-urlencoded` context types |
 | encoding | encoding name to use to send/receive data - default UTF-8 |
 | connector | `Closure{connection,ctx->...}` that will be called just before connection established. |
