@@ -51,7 +51,11 @@ def t = AcmeHTTP.post(
     //define content type xml
     headers:[
         "content-type":"application/xml"
-    ]
+    ],
+    //connector - a closure called just before connection. here you can manipulate with connection
+    connector:{connection, ctx->
+    	connection.setReadTimeout(10000) //just for example set read timeout to 10 seconds
+    }
 )
 assert t.response.code==200
 //the https://httpbin.org/post service always returns json object 

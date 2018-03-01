@@ -123,8 +123,8 @@ public class AcmeHTTP{
      * @param headers key-value Map<String,String> with headers that should be sent with request
      * @param body request body/data to send to url (InputStream, CharSequence, groovy.lang.Writable, Closure{outStream,ctx->...}, or Map for json and x-www-form-urlencoded context types)
      * @param encoding encoding name to use to send/receive data - default UTF-8
-     * @param connector Closure that will be called to init connection after header, method, ssl were set but before connection established.
-     * @param receiver Closure that will be called to receive data from server. Default: {@link #DEFAULT_RECEIVER}. Available: {@link #JSON_RECEIVER}, {@link #XML_RECEIVER}, {@link #TEXT_RECEIVER}, {@link #FILE_RECEIVER(java.io.File)}.
+     * @param connector Closure{connection, ctx->...} that will be called to init connection after header, method, ssl were set but before connection established.
+     * @param receiver Closure{inStream, ctx->...} that will be called to receive data from server. Default: {@link #DEFAULT_RECEIVER}. Available: {@link #JSON_RECEIVER}, {@link #XML_RECEIVER}, {@link #TEXT_RECEIVER}, {@link #FILE_RECEIVER(java.io.File)}.
      * @param followRedirects Boolean - whether HTTP redirects (requests with response code 3xx) should be automatically followed by this request.
      * @param ssl {@link javax.net.ssl.SSLContext} or String that evaluates the {@link javax.net.ssl.SSLContext}. example: send( url:..., ssl: "HTTP.getKeystoreSSLContext('./keystore.jks', 'testpass')" )
      * @return the modified ctx Map with new property `response`:
@@ -185,7 +185,7 @@ public class AcmeHTTP{
         if( followRedirects!=null ){
         	connection.setFollowRedirects(followRedirects);
         }
-        if( connector!=null )connection.with(connector);
+        if( connector!=null )connector.call(connection,ctx);
         
         if(body!=null){
             //write body
