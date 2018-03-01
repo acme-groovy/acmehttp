@@ -26,7 +26,7 @@ All methods has the same parameter map:
 | headers | key-value `Map` with headers that should be sent with request |
 | body | request body/data to send to url. could be: `InputStream`, `CharSequence`, `groovy.lang.Writable`, `Closure{outStream,ctx->...}`, or `Map` for `json` and `x-www-form-urlencoded` context types |
 | encoding | encoding name to use to send/receive data - default UTF-8 |
-| connector | `Closure{connection->...}` that will be called just before connection established. |
+| connector | `Closure{connection,ctx->...}` that will be called just before connection established. |
 | receiver | `Closure{inputStream, ctx->...}` that will be called to receive data from server. default: `AcmeHTTP.DEFAULT_RECEIVER`. available: `AcmeHTTP.JSON_RECEIVER`, `AcmeHTTP.XML_RECEIVER`, `AcmeHTTP.TEXT_RECEIVER`, `AcmeHTTP.FILE_RECEIVER(java.io.File)`, or custom closure. |
 | followRedirects | Boolean - whether we should follow redirects (requests with response code 3xx) |
 | ssl | `javax.net.ssl.SSLContext` to be used to establish ssl/tls connection. available: `AcmeHTTP.getNaiveSSLContext()` |
