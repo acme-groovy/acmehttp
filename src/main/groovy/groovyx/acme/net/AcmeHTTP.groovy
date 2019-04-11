@@ -86,6 +86,197 @@ public class AcmeHTTP{
             return f;
         }
     }
+    public static class Builder{
+    	Map<String,Object> base;
+    	Builder(Map<String,Object> base){
+    		this.base = ( base==null ? new LinkedHashMap() : new LinkedHashMap(base) );
+    	}
+        /** sets/replaces current value in multivalue map. */
+    	private void multimapSet(String mapname, String key, Object value){
+    		Map<String,Object> map = (Map)base.get(mapname);
+    		if(map==null)map = new LinkedHashMap();
+   			map.put(key, value);
+    		base.put(mapname, map);
+    	}
+        /** adds another http header into headers map. note that there could be several values for one header */
+    	private void multimapAdd(String mapname, String key, Object value){
+    		Map<String,Object> map = (Map)base.get(mapname);
+    		if(map==null)map = new LinkedHashMap();
+    		Object oldValue = map.get(key);
+    		if(oldValue instanceof List){
+    			map.put(key, ((List)oldValue)+value); //groovy merges two lists into a new list, or if value is not a list it will be added into a list
+    		}else if(oldValue==null){
+    			map.put(key, value);
+    		}else{
+    			map.put(key, [oldValue,value]);
+    		}
+    		base.put(mapname, map);
+    	}
+
+    	/** string where to send request. could be a base url because it extended with path & query before call. */
+    	public Builder setUrl(String v){
+    		base.put("url", v);
+    		return this;
+    	}
+        /** additional url part that added to url before sending request.*/
+    	public Builder setPath(String v){
+    		base.put("path", v);
+    		return this;
+    	}
+        /** query Map - parameters to append to url like: <code>?key1=value1&key2=...</code>. the value of map could be list to pass several values for one parameter */
+    	public Builder setQuery(Map<String,Object> v){
+    		base.put("query", v);
+    		return this;
+    	}
+    	public Map<String,Object> getQuery(){
+    		return (Map<String,Object>) base.get("query");
+    	}
+        /** replaces parameter value in the query map */
+    	public Builder setQuery(String key, Object value){
+    		multimapSet("query",key,value);
+    		return this;
+    	}
+        /** add another one parameter into the query map. value could be a list or exact value to add to query map.*/
+    	public Builder addQuery(String key, Object value){
+    		multimapAdd("query",key,value);
+    		return this;
+    	}
+        /** fully replaces current headers map with new value */
+    	public Builder setHeaders(Map<String,Object> v){
+    		base.put("headers", v);
+    		return this;
+    	}
+        /** fully replaces current headers map with new value */
+    	public Map<String,Object> getHeaders(){
+    		return (Map<String,Object>) base.get("headers");
+    	}
+        /** sets/replaces current value in http headers map. note that there could be several values for one header. value could be exact value or a list of values. */
+    	public Builder setHeader(String key, Object value){
+    		multimapSet("headers",key,value);
+    		return this;
+    	}
+        /** adds another http header into headers map. note that there could be several values for one header */
+    	public Builder addHeader(String key, Object value){
+    		multimapAdd("headers",key,value);
+    		return this;
+    	}
+        /** define body as input stream. will be closed at the end. */
+    	public Builder setBody(InputStream v){
+    		base.put("body", v);
+    		return this;
+    	}
+        /** define body as char sequence (string) */
+    	public Builder setBody(CharSequence v){
+    		base.put("body", v);
+    		return this;
+    	}
+        /** define body as writable (for example result of Template.make()) */
+    	public Builder setBody(Writable v){
+    		base.put("body", v);
+    		return this;
+    	}
+        /** define body as map. could be used for `json` and `x-www-form-urlencoded` context types */
+    	public Builder setBody(Map v){
+    		base.put("body", v);
+    		return this;
+    	}
+        /** define body as groovy Closure(OutputStream,Map context). the closure should write data into output stream when called. the `context` parameter is a reference to all request parameters. */
+    	public Builder setBody(Closure v){
+    		base.put("body", v);
+    		return this;
+    	}
+        /** define default encoding for request/response */
+    	public Builder setEncoding(String v){
+    		base.put("encoding", v);
+    		return this;
+    	}
+        /** a Closure(URLConnection con,Map context) that wil be called just after connection established to initialize it in an own way. 
+         * `con` is a connection that you could initialize. `context` - all request parameters 
+         */
+    	public Builder setConnector(Closure v){
+    		base.put("connector", v);
+    		return this;
+    	}
+        /** a Closure(InputStream inStream,Map context) that wil be called to receive/transform the response stream. 
+         * `inStream` is a response stream to read. `context` - all request/response parameters. 
+         * Response http headers are already parsed when closure called and are available in `context.response.headers` map.
+         * There are different pre-defined receivers. Default: {@link #DEFAULT_RECEIVER}. Available: {@link #JSON_RECEIVER}, {@link #XML_RECEIVER}, {@link #TEXT_RECEIVER}, {@link #FILE_RECEIVER(java.io.File)}
+         */
+    	public Builder setReceiver(Closure v){
+    		base.put("receiver", v);
+    		return this;
+    	}
+        /**  whether HTTP redirects (requests with response code 3xx) should be automatically followed by this request */
+    	public Builder setFollowRedirects(boolean v){
+    		base.put("followRedirects", v as Boolean);
+    		return this;
+    	}
+        /**  javax.net.ssl.SSLContext to establish https connection. if not defined standard java ssl-context used. */
+    	public Builder setSsl(javax.net.ssl.SSLContext v){
+    		base.put("ssl", v);
+    		return this;
+    	}
+        /**  set groovy expression that should return javax.net.ssl.SSLContext. for some specific cases when we need to define it in some config files. */
+    	public Builder setSsl(String groovyExpression){
+    		base.put("ssl", groovyExpression);
+    		return this;
+    	}
+        /**  the Closure(Map context) that should return ssl context based on request parameters */
+    	public Builder setSsl(Closure v){
+    		base.put("ssl", v);
+    		return this;
+    	}
+    	/** makes a clone of builder, so it cold be used to append new context parameters */
+    	public Builder clone(){
+    		Map map;
+    		Builder clone = new Builder(this.base);
+    		map = (Map)clone.base.get("headers");
+    		if(map) clone.base.put("headers", new LinkedHashMap(map));
+    		map = (Map)clone.base.get("query");
+    		if(map) clone.base.put("query", new LinkedHashMap(map));
+    		return clone;
+    	}
+
+    	/*=========================================== SEND methods ====================================*/
+
+    	/* main send method. merges parameters defined in this builder with new onces from closure. context parameters rewrites from current builder */
+        public Map<String,Object> send(String method, Closure ctx=null)throws IOException{
+        	Builder clone = this.clone();
+			if(method)clone.base.put("method", method);
+			if(ctx) {
+	        	ctx.setDelegate(clone);
+		        ctx.setResolveStrategy(Closure.DELEGATE_FIRST);
+    	    	ctx.call(clone);
+    	    }
+			return AcmeHTTP.send(clone.base);
+        }
+
+        public Map<String,Object> get    (Closure ctx=null)   throws IOException { return send("GET",ctx); }
+        public Map<String,Object> put    (Closure ctx=null)   throws IOException { return send("PUT",ctx); }
+        public Map<String,Object> post   (Closure ctx=null)   throws IOException { return send("POST",ctx); }
+        public Map<String,Object> delete (Closure ctx=null)   throws IOException { return send("DELETE",ctx); }
+        public Map<String,Object> head   (Closure ctx=null)   throws IOException { return send("HEAD",ctx); }
+
+    }
+
+    public static Builder builder(Map<String,Object> base=null){
+    	return new Builder(base);
+    }
+
+    public static Builder builder(Builder base){
+    	return base.clone();
+    }
+
+    public static Builder builder(Closure base){
+    	Builder b = new Builder(null);
+		if(base) {
+        	base.setDelegate(b);
+	        base.setResolveStrategy(Closure.DELEGATE_FIRST);
+	    	base.call(b);
+	    }
+		return b;
+    }
+
     /** Sends request using http method 'GET'. See {@link #send(Map&lt;String,Object&gt;)} for parameter details. */
     public static Map<String,Object> get(Map<String,Object> ctx)throws IOException{
         ctx.put('method','GET');
@@ -117,7 +308,8 @@ public class AcmeHTTP{
     }
 
     /**
-     * @param url string where to send request
+     * @param url string where to send request. hould be a base url.
+     * @param path additional url part that added to url before sending request.
      * @param query Map<String,String> parameters to append to url
      * @param method http method to be used in request. standard methods: GET, POST, PUT, DELETE, HEAD
      * @param headers key-value Map<String,String> with headers that should be sent with request
@@ -138,6 +330,7 @@ public class AcmeHTTP{
      */
     public static Map<String,Object> send(Map<String,Object> ctx)throws IOException{
         String             url      = ctx.url;
+        String             path     = ctx.path;
         Map<String,Object> headers  = HeadersMap.cast((Map<String,Object>)ctx.headers);
         String             method   = ctx.method;
         Object             body     = ctx.body;
@@ -154,6 +347,9 @@ public class AcmeHTTP{
         ctx.headers = headers;
         String contentType="";
         
+        if(path){
+            url+=path;
+        }
         if(query){
         	def e2s = {String k,Object v-> k + "=" + URLEncoder.encode(v as String ?: "", encoding) }
             url+=(url.indexOf('?')>0 ? "&" : "?")+query.collectMany{k,v-> v instanceof List ? v.collect{ e2s(k,it) } : [ e2s(k,v) ] }.join('&');
@@ -167,10 +363,12 @@ public class AcmeHTTP{
             }else if(sslCtxObj instanceof CharSequence){
                 //assume this is a groovy code to get ssl context
                 sslCtx = evaluateSSLContext((CharSequence)sslCtxObj);
+            }else if(sslCtxObj instanceof Closure){
+                sslCtx = ((Closure)sslCtxObj).call(ctx);
             }else{
                 throw new IllegalArgumentException("Unsupported ssl parameter ${sslCtxObj.getClass()}")
             }
-            ((HttpsURLConnection)connection).setSSLSocketFactory(sslCtx.getSocketFactory());
+            if(sslCtx)((HttpsURLConnection)connection).setSSLSocketFactory(sslCtx.getSocketFactory());
         }
         
         connection.setDoOutput(true);

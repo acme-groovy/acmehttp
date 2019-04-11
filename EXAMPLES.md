@@ -2,6 +2,7 @@
 
 
 
+
 ### simple http get 	
 ```groovy
 import groovyx.acme.net.AcmeHTTP
@@ -29,6 +30,24 @@ assert t.response.code==200
 assert t.response.contentType =~ "/json"
 assert t.response.body.args.a == ["1", "2"]
 assert t.response.body.args.b == "3"
+```
+
+### simple https get and query parameters using bulder
+```groovy
+import groovyx.acme.net.AcmeHTTP
+
+def base = AcmeHTTP.builder().setUrl('https://httpbin.org').addHeader('h1',1).addHeader('h1',2)
+def t = base.get{
+	path = '/get'
+	headers.h2 = 3
+	query = [a: ['1','2'], b:'3']
+} 
+assert t.response.code==200
+assert t.response.contentType =~ "/json"
+assert t.response.body.args.a == ["1", "2"]
+assert t.response.body.args.b == "3"
+assert t.response.body.headers.H1 == "1,2"
+assert t.response.body.headers.H2 == "3"
 ```
 
 ### xml post
