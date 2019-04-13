@@ -247,12 +247,26 @@ public class AcmeHTTP{
     	/* main send method. merges parameters defined in this builder with new onces from closure. context parameters rewrites from current builder */
         public Map<String,Object> send(String method, Closure ctx=null)throws IOException{
         	Builder clone = this.clone();
-			if(method)clone.base.put("method", method);
 			if(ctx) {
 	        	ctx.setDelegate(clone);
 		        ctx.setResolveStrategy(Closure.DELEGATE_FIRST);
     	    	ctx.call(clone);
     	    }
+			if(method)clone.base.put("method", method);
+			return AcmeHTTP.send(clone.base);
+        }
+
+        public Map<String,Object> send(String method, Map<String,Object> ctx)throws IOException{
+        	Builder clone = this.clone();
+        	for(Map.Entry<String,Object> e: ctx){
+        		if(e.getKey()=="headers" || e.getKey()=="query"){
+        			Map merged = ( ((Map)clone.base.get( e.getKey() )) ?: [:]) + (Map)e.getValue();
+					clone.base.put(e.getKey(), merged);
+        		}else{
+        			clone.base.put(e.getKey(), e.getValue());
+        		}
+        	}
+			if(method)clone.base.put("method", method);
 			return AcmeHTTP.send(clone.base);
         }
 
