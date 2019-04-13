@@ -30,7 +30,7 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.SSLContext;
 import java.security.SecureRandom;
 import javax.net.ssl.HttpsURLConnection;
-
+import java.util.regex.Matcher;
 /**
  * simple http client for groovy
  * by dlukyanov@ukr.net 
@@ -46,7 +46,7 @@ public class AcmeHTTP{
         String contentType = response?.contentType;
         Closure receiver   = TEXT_RECEIVER; //default receiver
         if(contentType){
-            if( contentType.indexOf('/json')>0 ){
+            if( contentType.indexOf("/json")>0 ){ //TODO
                 receiver = JSON_RECEIVER;
             }else if( contentType.indexOf('/xml')>0 ){
                 receiver = XML_RECEIVER;
@@ -60,22 +60,27 @@ public class AcmeHTTP{
      * Stores parsed text (String) as `response.body`
      */
     public static Closure TEXT_RECEIVER = {InputStream instr,Map ctx->
-        //todo: if encoding not defined evaluate it from response headers
-        return instr.getText( (String)ctx.encoding );
+        return instr.getText( (String)((Map)ctx.response).encoding );
     }
     
     /** Receiver to get response as json. groovy.json.JsonSlurper() used to parse incoming stream. 
      * Encoding could be defined through ctx.encoding.
      * Stores parsed json object as `response.body`
      */
-    public static Closure JSON_RECEIVER = {InputStream instr, Map ctx-> 
-        return new groovy.json.JsonSlurper().parse(instr,(String)ctx.encoding);
+    public static Closure JSON_RECEIVER = {BufferedInputStream instr, Map ctx-> 
+    	instr.mark(1);
+    	if(instr.read()==-1)return null; //no content
+    	instr.reset();
+        return new groovy.json.JsonSlurper().parse(instr,(String)((Map)ctx.response).encoding);
     }
     
     /** Receiver to get response as xml. groovy.util.XmlParser() used to parse incoming stream. 
      * Stores parsed xml (groovy.util.Node) object as `response.body`
      */
     public static Closure XML_RECEIVER = {InputStream instr, Map ctx-> 
+    	instr.mark(1);
+    	if(instr.read()==-1)return null; //no content
+    	instr.reset();
         return new groovy.util.XmlParser().parse(instr);
     }
     
@@ -426,6 +431,9 @@ public class AcmeHTTP{
         response.message = connection.getResponseMessage();
         response.contentType = connection.getContentType();
         response.headers = HeadersMap.cast((Map<String,Object>)connection.getHeaderFields());
+        //eval encoding 
+        Matcher em       = response.contentType =~ /(?i) charset=([\d\w\-]*)/ ;
+        response.encoding=  em.find() ? em.group(1) : encoding;
         
         InputStream instr = null;
         
