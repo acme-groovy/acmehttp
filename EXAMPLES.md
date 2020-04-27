@@ -7,13 +7,27 @@
 ```groovy
 import groovyx.acme.net.AcmeHTTP
 
-def t = AcmeHTTP.get(url:"http://time.jsontest.com/")
+def t = AcmeHTTP.get(url:"http://httpbin.org/get")
 assert t.response.code==200
 assert t.response.contentType =~ "/json"
 assert t.response.headers.first('content-type') =~ "/json"
-assert t.response.body instanceof Map // expecting response like:  {"time": "01:07:59 PM", "date": "05-31-2017"}
-assert t.response.body.time
-assert t.response.body.date
+assert t.response.body instanceof Map
+```
+
+### use response validator-assertion
+```groovy
+import groovyx.acme.net.AcmeHTTP
+
+try{
+    def t = AcmeHTTP.get(
+        url:"http://httpbin.org/get",
+        assertTrue: {ctx-> ctx.response.code==201} //actual result 200
+    )
+}catch(e){
+    println e
+    assert ( e instanceof AcmeHTTP.AcmeHTTPError )
+}
+
 ```
 
 ### simple https get and query parameters
@@ -24,9 +38,10 @@ import groovyx.acme.net.AcmeHTTP
 def t = AcmeHTTP.get(
     url:"https://httpbin.org/get",
     query: [a: ['1','2'], b:'3'],
-    headers: [h1:[1,2],h2:3]
+    headers: [h1:[1,2],h2:3],
+    assertTrue: {ctx-> ctx.response.code==200}
 )
-assert t.response.code==200
+//assert t.response.code==200 //moved to `assertTrue` parameter
 assert t.response.contentType =~ "/json"
 assert t.response.body.args.a == ["1", "2"]
 assert t.response.body.args.b == "3"
@@ -106,6 +121,36 @@ def t = AcmeHTTP.post(
 assert t.response.code==200
 assert t.response.contentType =~ "/json"
 assert t.response.body instanceof Map
+//the https://httpbin.org/post service returns json object with json key that contains posted body
+//so let's take it and validate
+def data = t.response.body.json
+assert data.arr_int==[1,2,3,4,5,9]
+assert data.str=="hello"
+```
+
+
+### get with body
+not normal but possible
+```groovy
+import groovyx.acme.net.AcmeHTTP
+
+def t = AcmeHTTP.get(
+    url:   "https://httpbin.org/post",
+    //define payload as maps/arrays
+    body: [
+      arr_int: [1,2,3,4,5,9],
+      str: "hello",
+    ],
+    //let's specify content-type = json, so JsonOutput.toJson() will be applied
+    headers:[
+        "content-type":"application/json"
+    ],
+    encoding: "UTF-8",  //force to use utf-8 encoding for sending/receiving data
+)
+assert t.response.code==200
+assert t.response.contentType =~ "/json"
+assert t.response.body instanceof Map
+println t.response
 //the https://httpbin.org/post service returns json object with json key that contains posted body
 //so let's take it and validate
 def data = t.response.body.json

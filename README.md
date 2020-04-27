@@ -4,7 +4,7 @@ simplified plain http client optimized for groovy language
 ## grab it
 
 ```groovy
-@Grab(group='acme.groovy', module='acmehttp', version='20180403', transitive=false)
+@Grab(group='acme.groovy', module='acmehttp', version='20.04.27', transitive=false)
 import groovyx.acme.net.AcmeHTTP
 ```
 
@@ -30,6 +30,7 @@ All methods has the same parameter map:
 | receiver | `Closure{inputStream, ctx->...}` that will be called to receive data from server. default: `AcmeHTTP.DEFAULT_RECEIVER`. available: `AcmeHTTP.JSON_RECEIVER`, `AcmeHTTP.XML_RECEIVER`, `AcmeHTTP.TEXT_RECEIVER`, `AcmeHTTP.FILE_RECEIVER(java.io.File)`, or custom closure. |
 | followRedirects | Boolean - whether we should follow redirects (requests with response code 3xx) |
 | ssl | `javax.net.ssl.SSLContext` to be used to establish ssl/tls connection. available: `AcmeHTTP.getNaiveSSLContext()` |
+| assertTrue | `Closure{ctx->...}` to validate response before returning it |
 
 **result**
 

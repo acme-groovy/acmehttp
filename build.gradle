@@ -16,7 +16,7 @@ repositories {
 
 //============================================
 group = "acme.groovy"
-version = new Date().format("yyyyMMdd")
+version = new Date().format("yy.MM.dd")
 
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
@@ -55,8 +55,8 @@ task sourcesJar(type: Jar, dependsOn: classes) {
     from sourceSets.main.allSource
 }
 
-task groovydocJar(type: Jar, dependsOn: groovydoc) {
-    classifier = "groovydoc"
+task javadocJar(type: Jar, dependsOn: groovydoc) {
+    classifier = "javadoc"
     from groovydoc.destinationDir
 }
 
@@ -65,7 +65,7 @@ publishing {
         MyPublication(MavenPublication) {
             from components.java
             artifact sourcesJar
-            artifact groovydocJar
+            artifact javadocJar
         }
     }
 }
@@ -102,10 +102,10 @@ jar {
 	}
 }
 
-task all(dependsOn: [clean, build, groovydocJar, sourcesJar, bintrayUpload]){
+task all(dependsOn: [clean, build, javadocJar, sourcesJar, bintrayUpload]){
 	build.mustRunAfter clean
-	groovydocJar.mustRunAfter build
-	sourcesJar.mustRunAfter groovydocJar
+	javadocJar.mustRunAfter build
+	sourcesJar.mustRunAfter javadocJar
 	bintrayUpload.mustRunAfter sourcesJar
 }
 

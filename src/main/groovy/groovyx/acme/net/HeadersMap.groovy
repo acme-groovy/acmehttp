@@ -20,13 +20,14 @@ package groovyx.acme.net;
 
 import java.util.Map;
 
-/** The map that keeps the order and keys of the original map but on get ignores case
-*/
+/** 
+ * The map that keeps the order and keys of the original map but on get ignores case of the key
+ */
 
 @groovy.transform.CompileStatic
 public class HeadersMap implements Map<String,Object> {
-	Map<String,String> keyMap;
-	@Delegate LinkedHashMap<String,Object> delegate;
+	Map<String,String> keyMap; //cache of key to real key
+	@Delegate LinkedHashMap<String,Object> delegate; //delegate map storage
 
 	private HeadersMap(Map<String,Object> m){
 		int msize = m==null?10:m.size()+5;
@@ -39,7 +40,9 @@ public class HeadersMap implements Map<String,Object> {
 		if(m instanceof HeadersMap)return (HeadersMap)m;
 		return new HeadersMap(m);
 	}
-
+	/**
+	 * the same as get(key) but if under the key there are several values, then returns only the first one.
+	 */
 	public String first(Object key){
 		def v = delegate.get(realKey(key,0));
 		if(v instanceof List)return v?v.get(0) as String:null;

@@ -33,7 +33,6 @@ import javax.net.ssl.HttpsURLConnection;
 import java.util.regex.Matcher;
 /**
  * simple http client for groovy
- * by dlukyanov@ukr.net 
  */
 @groovy.transform.CompileStatic
 public class AcmeHTTP{
@@ -180,7 +179,7 @@ public class AcmeHTTP{
     		base.put("body", v);
     		return this;
     	}
-        /** define body as map. could be used for `json` and `x-www-form-urlencoded` context types */
+        /** define body as map. could be used for `json` and `x-www-form-urlencoded` content types */
     	public Builder setBody(Map v){
     		base.put("body", v);
     		return this;
@@ -195,7 +194,8 @@ public class AcmeHTTP{
     		base.put("encoding", v);
     		return this;
     	}
-        /** a Closure(URLConnection con,Map context) that wil be called just after connection established to initialize it in an own way. 
+        /** a Closure(URLConnection con,Map context) that wil be called just after connection established
+         * to initialize it in an own way.
          * `con` is a connection that you could initialize. `context` - all request parameters 
          */
     	public Builder setConnector(Closure v){
@@ -227,10 +227,15 @@ public class AcmeHTTP{
     		return this;
     	}
         /**  the Closure(Map context) that should return ssl context based on request parameters */
-    	public Builder setSsl(Closure v){
-    		base.put("ssl", v);
-    		return this;
-    	}
+        public Builder setSsl(Closure v){
+            base.put("ssl", v);
+            return this;
+        }
+        /**  the Closure(Map context) that should return false if response is bad and exception should be thrown */
+        public Builder assertTrue(Closure v){
+            base.put("assertTrue", v);
+            return this;
+        }
     	/** makes a clone of builder, so it cold be used to append new context parameters */
     	public Builder clone(){
     		Map map;
@@ -244,7 +249,7 @@ public class AcmeHTTP{
 
     	/*=========================================== SEND methods ====================================*/
 
-    	/* main send method. merges parameters defined in this builder with new onces from closure. context parameters rewrites from current builder */
+    	/** main send method. merges parameters defined in this builder with new from closure. context parameters rewrites from current builder */
         public Map<String,Object> send(String method, Closure ctx=null)throws IOException{
         	Builder clone = this.clone();
 			if(ctx) {
@@ -256,6 +261,7 @@ public class AcmeHTTP{
 			return AcmeHTTP.send(clone.base);
         }
 
+        /** main method to send a request based on builder config and adding `ctx` parameters */
         public Map<String,Object> send(String method, Map<String,Object> ctx)throws IOException{
         	Builder clone = this.clone();
         	for(Map.Entry<String,Object> e: ctx){
@@ -270,22 +276,30 @@ public class AcmeHTTP{
 			return AcmeHTTP.send(clone.base);
         }
 
+        /** method to send `GET` request based on builder config and adding `ctx` parameters */
         public Map<String,Object> get    (Closure ctx=null)   throws IOException { return send("GET",ctx); }
+        /** method to send `PUT` request based on builder config and adding `ctx` parameters */
         public Map<String,Object> put    (Closure ctx=null)   throws IOException { return send("PUT",ctx); }
+        /** method to send `POST` request based on builder config and adding `ctx` parameters */
         public Map<String,Object> post   (Closure ctx=null)   throws IOException { return send("POST",ctx); }
+        /** method to send `DELETE` request based on builder config and adding `ctx` parameters */
         public Map<String,Object> delete (Closure ctx=null)   throws IOException { return send("DELETE",ctx); }
+        /** method to send `HEAD` request based on builder config and adding `ctx` parameters */
         public Map<String,Object> head   (Closure ctx=null)   throws IOException { return send("HEAD",ctx); }
 
     }
 
+    /** create builder with default config */
     public static Builder builder(Map<String,Object> base=null){
     	return new Builder(base);
     }
 
+    /** create builder with default config (another builder) */
     public static Builder builder(Builder base){
     	return base.clone();
     }
 
+    /** create builder with config defined with closure */
     public static Builder builder(Closure base){
     	Builder b = new Builder(null);
 		if(base) {
@@ -327,17 +341,21 @@ public class AcmeHTTP{
     }
 
     /**
-     * @param url string where to send request. hould be a base url.
+     * @param url string where to send request. Could be a base url.
      * @param path additional url part that added to url before sending request.
-     * @param query Map<String,String> parameters to append to url
-     * @param method http method to be used in request. standard methods: GET, POST, PUT, DELETE, HEAD
-     * @param headers key-value Map<String,String> with headers that should be sent with request
-     * @param body request body/data to send to url (InputStream, CharSequence, groovy.lang.Writable, Closure{outStream,ctx->...}, or Map for json and x-www-form-urlencoded context types)
+     * @param query {@code Map<String,Object> } parameters to append to url. value of map entry could be and array to pass array to url.
+     * @param method http method to be used in request. standard methods: GET, POST, PUT, DELETE, HEAD.
+     * @param headers key-value {@code Map<String,Object> } with headers that should be sent with request. value of map entry could be and array to pass several values for the same header.
+     * @param body request body/data to send to url (<code>InputStream, CharSequence, groovy.lang.Writable, Closure{outStream,ctx->...}</code>, or {@code Map}
+     *          for {@code json} and {@code x-www-form-urlencoded context types})
      * @param encoding encoding name to use to send/receive data - default UTF-8
-     * @param connector Closure{connection, ctx->...} that will be called to init connection after header, method, ssl were set but before connection established.
-     * @param receiver Closure{inStream, ctx->...} that will be called to receive data from server. Default: {@link #DEFAULT_RECEIVER}. Available: {@link #JSON_RECEIVER}, {@link #XML_RECEIVER}, {@link #TEXT_RECEIVER}, {@link #FILE_RECEIVER(java.io.File)}.
+     * @param connector <code>Closure{connection, ctx->...}</code> that will be called to init connection after header, method, ssl were set but before connection established.
+     * @param receiver <code>Closure{inStream, ctx->...}</code> that will be called to receive data from server. Default: {@link #DEFAULT_RECEIVER}.
+     *          Available: {@link #JSON_RECEIVER}, {@link #XML_RECEIVER}, {@link #TEXT_RECEIVER}, {@link #FILE_RECEIVER(java.io.File)}.
      * @param followRedirects Boolean - whether HTTP redirects (requests with response code 3xx) should be automatically followed by this request.
-     * @param ssl {@link javax.net.ssl.SSLContext} or String that evaluates the {@link javax.net.ssl.SSLContext}. example: send( url:..., ssl: "HTTP.getKeystoreSSLContext('./keystore.jks', 'testpass')" )
+     * @param ssl {@link javax.net.ssl.SSLContext} or String that evaluates the {@link javax.net.ssl.SSLContext}.
+     *          example: <code>send( url:..., ssl: "AcmeHTTP.getKeystoreSSLContext('./keystore.jks', 'testpass')" )</code>
+     * @param assertTrue <code>Closure{ctx->...}</code> called just before returning the result. if closure returns false then `send` operation fails.
      * @return the modified ctx Map with new property `response`:
      * <table> 
      * <tr><td>response.code</td><td>http response code. for example '200' as Integer</td><tr> 
@@ -345,9 +363,10 @@ public class AcmeHTTP{
      * <tr><td>response.contentType</td><td>http `content-type` header. returned by URLConnection.getContentType()</td><tr> 
      * <tr><td>response.headers</td><td>http response headers Map<String,List<String>> returned by URLConnection.getHeaderFields()</td><tr> 
      * <tr><td>response.body</td><td>response body returned by a *_RECEIVER. For example {@link #TEXT_RECEIVER} returns body as text, and {@link #FILE_RECEIVER(java.io.File)} returns body as java.io.File object</td><tr> 
-     * </table> 
+     * </table>
+     * Throws `AcmeHTTPError` if error occurred after http response received
      */
-    public static Map<String,Object> send(Map<String,Object> ctx)throws IOException{
+    public static Map<String,Object> send(Map<String,Object> ctx)throws IOException, AcmeHTTPError{
         String             url      = ctx.url;
         String             path     = ctx.path;
         Map<String,Object> headers  = HeadersMap.cast((Map<String,Object>)ctx.headers);
@@ -356,6 +375,7 @@ public class AcmeHTTP{
         String             encoding = ctx.encoding?:"UTF-8";
         Closure            connector= (Closure)ctx.connector;
         Closure            receiver = (Closure)ctx.receiver?:DEFAULT_RECEIVER;
+        Closure            assertTrue= (Closure)ctx.assertTrue;
         Map<String,Object> query    = (Map<String,Object>)ctx.query;
         Object             sslCtxObj= ctx.ssl;
         Boolean            followRedirects= ctx.followRedirects as Boolean;
@@ -459,15 +479,25 @@ public class AcmeHTTP{
             try{
                 instr = connection.getInputStream();
             }catch(java.io.IOException ei){
-                throw new IOException("fail to open InputStream for http code "+response.code+":"+ei);
+                throw new AcmeHTTPError("Failed to open InputStream: $ei for $method `$url`", ei, ctx);
             }
         }
         
         if(instr!=null) {
             instr = new BufferedInputStream(instr);
-            response.body = receiver(instr,ctx);
-            instr.close();
-            instr=null;
+            try{
+                response.body = receiver(instr,ctx);
+            }catch(Throwable t){
+                throw new AcmeHTTPError("Failed to read response $t for $method `$url`", t, ctx);
+            }finally{
+                instr.close();
+                instr=null;
+            }
+        }
+        if(assertTrue!=null){
+            if( assertTrue.call(ctx) ) {} else {
+                throw new AcmeHTTPError("Received ${response.code}${response.message?': "'+response.message+'"':''} for $method `$url`", ctx);
+            }
         }
         return ctx;
     }
@@ -543,5 +573,23 @@ public class AcmeHTTP{
     public static SSLContext evaluateSSLContext(CharSequence code) {
         Object ssl = new GroovyShell( AcmeHTTP.class.getClassLoader() ).evaluate( code as String );
         return (SSLContext) ssl;
+    }
+
+    /** IOException that holds call context. Used after http response code already received. */
+    public static class AcmeHTTPError extends IOException{
+        private Map<String,Object> context;
+        public AcmeHTTPError(String msg, Map<String,Object> context){
+            super(msg);
+            this.context = context;
+        }
+
+        public AcmeHTTPError(String msg, Throwable cause, Map<String,Object> context){
+            super(msg,cause);
+            this.context = context;
+        }
+
+        public Map<String,Object> getContext(){
+            return context;
+        }
     }
 }
