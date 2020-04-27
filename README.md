@@ -7,7 +7,8 @@ simplified plain http client optimized for groovy language
 @Grab(group='acme.groovy', module='acmehttp', version='20.04.27', transitive=false)
 import groovyx.acme.net.AcmeHTTP
 ```
-
+## javadoc
+https://javadoc.io/doc/acme.groovy/acmehttp/latest/
 ## examples
 
 [EXAMPLES.md](EXAMPLES.md)
